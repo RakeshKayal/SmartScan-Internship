@@ -1,15 +1,12 @@
 name: Deploy to EC2
-
 on:
   push:
     branches:
       - main
       - master
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,4 +29,6 @@ jobs:
           script: |
             sudo rm -rf /opt/lampp/htdocs/*
             sudo cp -r /home/ubuntu/app/* /opt/lampp/htdocs/
+            cd /opt/lampp/htdocs
+            sudo chmod -R 777 storage bootstrap/cache
             sudo /opt/lampp/lampp restart
