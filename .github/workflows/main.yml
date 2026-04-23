@@ -14,13 +14,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Upload to EC2
+      - name: Upload files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.MY_HOST }}
           username: ubuntu
           key: ${{ secrets.MY_SECRET }}
           source: "."
-          target: "/home/ubuntu/myfolder"
-          debug: true
-    
+          target: "/home/ubuntu/app"
+
+      - name: Move to XAMPP
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.MY_HOST }}
+          username: ubuntu
+          key: ${{ secrets.MY_SECRET }}
+          script: |
+            sudo rm -rf /opt/lampp/htdocs/*
+            sudo cp -r /home/ubuntu/app/* /opt/lampp/htdocs/
+            sudo /opt/lampp/lampp restart
