@@ -20,7 +20,7 @@ jobs:
           host: ${{ secrets.MY_HOST }}
           username: ubuntu
           key: ${{ secrets.MY_KEY }}
-          source: "."
+          source: "./*"
           target: "/opt/lampp/htdocs"
           debug: true
     
