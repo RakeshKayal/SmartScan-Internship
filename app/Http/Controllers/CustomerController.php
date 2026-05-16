@@ -23,11 +23,13 @@ class CustomerController extends Controller
         $request->validate([
             'customer_name'  => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
         ]);
 
         Customer::create([
             'customer_name'  => $request->customer_name,
             'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
         ]);
 
         return redirect()->route('customers.index')->with('success', 'Customer added successfully!');

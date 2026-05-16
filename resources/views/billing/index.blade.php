@@ -65,7 +65,7 @@
                                 @foreach($customers as $customer)
                                     <option value="{{ $customer->id }}"
                                         {{ (string)($billingCustomer['customer_id'] ?? '') === (string)$customer->id ? 'selected' : '' }}>
-                                        {{ $customer->customer_name }} ({{ $customer->customer_phone }})
+                                        {{ $customer->customer_name }} ({{ $customer->customer_phone }}) - {{ $customer->customer_email ?? 'N/A' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -90,6 +90,15 @@
                                    id="walk_in_phone"
                                    placeholder="Enter customer phone number"
                                    value="{{ $billingCustomer['walk_in_phone'] ?? '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walk_in_email">Email Address</label>
+                            <input type="email"
+                                   name="walk_in_email"
+                                   id="walk_in_email"
+                                   placeholder="Enter customer email address"
+                                   value="{{ $billingCustomer['walk_in_email'] ?? '' }}">
                         </div>
                     </div>
                 </form>
@@ -141,17 +150,17 @@
                                     <td>₹{{ number_format($item['price'], 2) }}</td>
                                     <td>
                                         <div class="qty-controls">
-                                            <form action="{{ route('billing.decreaseQty', $item['product_id']) }}" method="POST">
+                                            {{-- <form action="{{ route('billing.decreaseQty', $item['product_id']) }}" method="POST">
                                                 @csrf
                                                 <button type="submit" class="qty-btn">-</button>
-                                            </form>
+                                            </form> --}}
 
                                             <span class="qty-value">{{ $item['quantity'] }}</span>
 
-                                            <form action="{{ route('billing.increaseQty', $item['product_id']) }}" method="POST">
+                                            {{-- <form action="{{ route('billing.increaseQty', $item['product_id']) }}" method="POST">
                                                 @csrf
                                                 <button type="submit" class="qty-btn">+</button>
-                                            </form>
+                                            </form> --}}
                                         </div>
                                     </td>
                                     <td>
@@ -207,12 +216,16 @@
                         <p id="previewCustomerType"><strong>Type:</strong> -</p>
                         <p id="previewCustomerName"><strong>Name:</strong> -</p>
                         <p id="previewCustomerPhone"><strong>Phone:</strong> -</p>
+                        <p id="previewCustomerEmail"><strong>Email:</strong> -</p>
                     </div>
 
                     <div class="bill-preview-summary-box">
                         <h3>Bill Summary</h3>
                         <p><strong>Total Items:</strong> {{ $totalItems }}</p>
-                        <p><strong>Gross Total:</strong> ₹{{ number_format($cartTotal, 2) }}</p>
+                        <p><strong>Discount:</strong> ₹0.00</p>
+                        <p><strong>CGST:</strong> ₹{{ number_format($cartTotal * 0.05, 2) }}</p>
+                        <p><strong>Gross Total:</strong> ₹{{ number_format($cartTotal * 1.05, 2) }}</p>
+
                         <p class="payable-amount"><strong>Total Payable:</strong> ₹{{ number_format($cartTotal, 2) }}</p>
                     </div>
                 </div>
@@ -252,6 +265,16 @@
             <div class="bill-modal-footer">
                 <button type="button" id="cancelBillPreviewBtn" class="secondary-action-btn">Close</button>
                 <button type="submit" form="generateBillForm" class="primary-action-btn pay-btn">Pay</button>
+
+                <form action="{{ route('billing.printBill') }}" method="POST" id="printBillForm">
+                    @csrf
+                    <button type="submit" form="printBillForm" class="primary-action-btn pay-btn">PrintBill</button>
+                    
+                </form>
+                <form action="{{ route('billing.sendEmail') }}" method="POST" id="sendEmailForm">
+                    @csrf
+                    <button type="submit" form="sendEmailForm" class="primary-action-btn pay-btn">Send Email</button>
+                </form>
             </div>
         </div>
     </div>
@@ -263,6 +286,7 @@
         const customerId = document.getElementById('customer_id');
         const walkInName = document.getElementById('walk_in_name');
         const walkInPhone = document.getElementById('walk_in_phone');
+        const walkInEmail = document.getElementById('walk_in_email');
 
         const openBillPreviewBtn = document.getElementById('openBillPreviewBtn');
         const billPreviewModal = document.getElementById('billPreviewModal');
@@ -272,6 +296,7 @@
         const previewCustomerType = document.getElementById('previewCustomerType');
         const previewCustomerName = document.getElementById('previewCustomerName');
         const previewCustomerPhone = document.getElementById('previewCustomerPhone');
+        const previewCustomerEmail = document.getElementById('previewCustomerEmail');
 
         const cartTotal = {{ $cartTotal }};
         const totalItems = {{ $totalItems }};
@@ -298,7 +323,8 @@
                     customer_type: customerType ? customerType.value : 'walk_in',
                     customer_id: customerId ? customerId.value : '',
                     walk_in_name: walkInName ? walkInName.value : '',
-                    walk_in_phone: walkInPhone ? walkInPhone.value : ''
+                    walk_in_phone: walkInPhone ? walkInPhone.value : '',
+                    walk_in_email: walkInEmail ? walkInEmail.value : ''
                 })
             }).catch(error => {
                 console.error('Error saving billing customer info:', error);
@@ -330,15 +356,17 @@
                 previewCustomerType.innerHTML = '<strong>Type:</strong> Registered Customer';
                 previewCustomerName.innerHTML = '<strong>Customer:</strong> ' + selectedText;
                 previewCustomerPhone.innerHTML = '<strong>Phone:</strong> Saved in selected customer';
+                previewCustomerEmail.innerHTML = '<strong>Email:</strong> Saved in selected customer';
             } else {
-                if (!walkInName.value.trim() || !walkInPhone.value.trim()) {
-                    alert('For walk-in customer, please enter name and phone number.');
+                if (!walkInName.value.trim() || !walkInPhone.value.trim() || !walkInEmail.value.trim()) {
+                    alert('For walk-in customer, please enter name, phone number, and email.');
                     return false;
                 }
 
                 previewCustomerType.innerHTML = '<strong>Type:</strong> Walk-in Customer';
                 previewCustomerName.innerHTML = '<strong>Name:</strong> ' + walkInName.value;
                 previewCustomerPhone.innerHTML = '<strong>Phone:</strong> ' + walkInPhone.value;
+                previewCustomerEmail.innerHTML = '<strong>Email:</strong> ' + (walkInEmail.value || 'N/A');
             }
 
             return true;
@@ -370,6 +398,9 @@
 
         if (walkInPhone) {
             walkInPhone.addEventListener('input', debounceSaveCustomerInfo);
+        }
+        if (walkInEmail) {
+            walkInEmail.addEventListener('input', debounceSaveCustomerInfo);
         }
 
         openBillPreviewBtn.addEventListener('click', openBillPreview);

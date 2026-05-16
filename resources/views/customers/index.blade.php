@@ -26,6 +26,7 @@
                         <th>ID</th>
                         <th>Customer Name</th>
                         <th>Phone Number</th>
+                        <th>Email Address</th>
                         <th>Created At</th>
                         <th>Action</th>
                     </tr>
@@ -36,6 +37,7 @@
                             <td>{{ $customer->id }}</td>
                             <td>{{ $customer->customer_name }}</td>
                             <td>{{ $customer->customer_phone }}</td>
+                            <td>{{ $customer->customer_email ?? 'N/A' }}</td>
                             <td>{{ $customer->created_at->format('d M Y, h:i A') }}</td>
                             <td>
                                 <div class="table-actions">

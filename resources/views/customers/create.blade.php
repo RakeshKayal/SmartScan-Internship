@@ -33,6 +33,12 @@
                     <label for="customer_phone">Phone Number</label>
                     <input type="text" name="customer_phone" id="customer_phone" value="{{ old('customer_phone') }}" placeholder="Enter customer phone number" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="customer_email">Email Address</label>
+                    <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email') }}" placeholder="Enter customer email address">
+                </div>
+
             </div>
 
             <div class="form-actions">

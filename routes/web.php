@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\BillingController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,19 @@ Route::middleware('check.guest')->group(function () {
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login.form');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    
+
+Route::get('/test-mail', function () {
+
+    Mail::raw('Test Email Working', function ($message) {
+
+        $message->to('rr6611397@gmail.com')
+                ->subject('Test Mail');
+
+    });
+
+    return 'Mail Sent';
+});
 });
 
 /*
@@ -62,6 +76,8 @@ Route::middleware('check.auth')->group(function () {
     Route::post('/billing/decrease/{productId}', [BillingController::class, 'decreaseQty'])->name('billing.decreaseQty');
     Route::post('/billing/remove/{productId}', [BillingController::class, 'removeItem'])->name('billing.removeItem');
     Route::post('/billing/generate', [BillingController::class, 'generateBill'])->name('billing.generateBill');
+    Route::post('/billing/print', [BillingController::class, 'printBill'])->name('billing.printBill');
+    Route::post('/billing/send-email', [BillingController::class, 'sendEmail'])->name('billing.sendEmail');
 
     // Order History
     Route::get('/orders', [BillingController::class, 'orders'])->name('orders.index');
@@ -76,4 +92,7 @@ Route::middleware('check.admin')->group(function () {
     Route::get('/users/create', [AuthController::class, 'showCreateUser'])->name('users.create');
     Route::post('/users', [AuthController::class, 'createUser'])->name('users.store');
     Route::delete('/users/{id}', [AuthController::class, 'deleteUser'])->name('users.destroy');
+    // routes/web.php
+Route::post('/users/send-otp', [AuthController::class, 'sendOtp'])->name('users.sendOtp');
+Route::post('/users/verify-otp', [AuthController::class, 'verifyOtp'])->name('users.verifyOtp');
 });
