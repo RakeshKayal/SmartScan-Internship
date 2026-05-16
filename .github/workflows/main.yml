@@ -1,34 +1,27 @@
 name: Deploy to EC2
+
 on:
   push:
     branches:
       - main
       - master
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Upload files
+      - name: Upload to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.MY_HOST }}
           username: ubuntu
-          key: ${{ secrets.MY_SECRET }}
+          key: ${{ secrets.MY_KEY }}
           source: "."
-          target: "/home/ubuntu/app"
+          target: "/opt/lampp/htdocs"
+          debug: true
+    
 
-      - name: Move to XAMPP
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.MY_HOST }}
-          username: ubuntu
-          key: ${{ secrets.MY_SECRET }}
-          script: |
-            sudo rm -rf /opt/lampp/htdocs/*
-            sudo cp -r /home/ubuntu/app/* /opt/lampp/htdocs/
-            cd /opt/lampp/htdocs
-            sudo chmod -R 777 storage bootstrap/cache
-            sudo /opt/lampp/lampp restart
