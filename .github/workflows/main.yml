@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Upload to EC2
+      - name: Upload files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.MY_HOST }}
@@ -23,5 +23,26 @@ jobs:
           source: "./*"
           target: "/opt/lampp/htdocs"
           debug: true
-    
 
+      - name: Fix Laravel Permissions
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.MY_HOST }}
+          username: ubuntu
+          key: ${{ secrets.MY_KEY }}
+          script: |
+            cd /opt/lampp/htdocs
+
+            sudo mkdir -p storage/framework/views
+            sudo mkdir -p storage/framework/cache
+            sudo mkdir -p storage/framework/sessions
+
+            sudo chown -R daemon:daemon storage
+            sudo chown -R daemon:daemon bootstrap/cache
+
+            sudo chmod -R 777 storage
+            sudo chmod -R 777 bootstrap/cache
+
+            php artisan view:clear
+            php artisan cache:clear
+            php artisan config:clear
