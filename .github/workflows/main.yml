@@ -20,29 +20,9 @@ jobs:
           host: ${{ secrets.MY_HOST }}
           username: ubuntu
           key: ${{ secrets.MY_KEY }}
-          source: "./*"
+
+          source: "app,bootstrap,config,database,public,resources,routes,artisan,composer.json,composer.lock"
+
           target: "/opt/lampp/htdocs"
+
           debug: true
-
-      - name: Fix Laravel Permissions
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.MY_HOST }}
-          username: ubuntu
-          key: ${{ secrets.MY_KEY }}
-          script: |
-            cd /opt/lampp/htdocs
-
-            sudo mkdir -p storage/framework/views
-            sudo mkdir -p storage/framework/cache
-            sudo mkdir -p storage/framework/sessions
-
-            sudo chown -R daemon:daemon storage
-            sudo chown -R daemon:daemon bootstrap/cache
-
-            sudo chmod -R 777 storage
-            sudo chmod -R 777 bootstrap/cache
-
-            php artisan view:clear
-            php artisan cache:clear
-            php artisan config:clear
